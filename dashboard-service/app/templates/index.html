@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iCash Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #10b981;
+            --primary-hover: #059669;
+            --background-color: #f3f4f6;
+            --card-background: #ffffff;
+            --text-color: #111827;
+            --subtle-text: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .stat-card {
+            background: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .stat-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--subtle-text);
+            margin-bottom: 1rem;
+        }
+        .stat-card-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .stat-card-body {
+            font-size: 2.25rem;
+            font-weight: 700;
+        }
+        .list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+        .list li:last-child {
+            border-bottom: none;
+        }
+        .list .name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 1rem;
+        }
+        .list .value {
+            font-weight: 400;
+            color: var(--subtle-text);
+            background-color: var(--background-color);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <i data-feather="bar-chart-2"></i>
+                <h1>iCash Owner's Dashboard</h1>
+            </div>
+            <button id="refreshBtn">
+                <i data-feather="refresh-cw"></i>
+                <span>Refresh Data</span>
+            </button>
+        </header>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <i data-feather="users"></i>
+                    <h2>Unique Shoppers</h2>
+                </div>
+                <div id="unique-shoppers" class="stat-card-body">...</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <i data-feather="heart"></i>
+                    <h2>Loyal Shoppers (3+ visits)</h2>
+                </div>
+                <ul id="loyal-shoppers" class="list"><li>Loading...</li></ul>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <i data-feather="award"></i>
+                    <h2>Top Products</h2>
+                </div>
+                <ul id="top-products" class="list"><li>Loading...</li></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uniqueShoppersEl = document.getElementById('unique-shoppers');
+        const loyalShoppersEl = document.getElementById('loyal-shoppers');
+        const topProductsEl = document.getElementById('top-products');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        async function fetchAndUpdateStats() {
+            try {
+                uniqueShoppersEl.textContent = '...';
+                loyalShoppersEl.innerHTML = '<li>Loading...</li>';
+                topProductsEl.innerHTML = '<li>Loading...</li>';
+
+                const response = await fetch('/api/stats');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                uniqueShoppersEl.textContent = data.unique_shoppers;
+
+                loyalShoppersEl.innerHTML = data.loyal_shoppers.length > 0
+                    ? data.loyal_shoppers.map(s => `<li><span class="name">${s.user_id}</span><span class="value">${s.purchase_count} visits</span></li>`).join('')
+                    : '<li>No loyal shoppers yet.</li>';
+                
+                topProductsEl.innerHTML = data.top_products.length > 0
+                    ? data.top_products.map(p => `<li><span class="name">${p.name.charAt(0).toUpperCase() + p.name.slice(1)}</span><span class="value">${p.sales} sales</span></li>`).join('')
+                    : '<li>No sales data yet.</li>';
+
+            } catch (error) {
+                console.error("Failed to fetch stats:", error);
+                uniqueShoppersEl.textContent = 'Error';
+                loyalShoppersEl.innerHTML = '<li>Error loading data.</li>';
+                topProductsEl.innerHTML = '<li>Error loading data.</li>';
+            }
+        }
+
+        refreshBtn.addEventListener('click', fetchAndUpdateStats);
+        document.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+            fetchAndUpdateStats();
+        });
+    </script>
+</body>
+</html>

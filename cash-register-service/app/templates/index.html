@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iCash Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --background-color: #f3f4f6;
+            --card-background: #ffffff;
+            --text-color: #111827;
+            --subtle-text: #6b7280;
+            --border-color: #e5e7eb;
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-text: #991b1b;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .card {
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .form-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+        label {
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+            background-color: #f9fafb;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .item-label {
+            display: flex;
+            align-items: center;
+            background: var(--card-background);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-label:hover {
+            border-color: var(--primary-color);
+        }
+        input[type="checkbox"] {
+            margin-right: 0.75rem;
+            width: 1rem;
+            height: 1rem;
+            accent-color: var(--primary-color);
+        }
+        .item-label span {
+            font-weight: 500;
+        }
+        .item-label .price {
+            margin-left: auto;
+            color: var(--subtle-text);
+            font-size: 0.875rem;
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+        .message {
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .success { background-color: var(--success-bg); color: var(--success-text); }
+        .error { background-color: var(--error-bg); color: var(--error-text); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i data-feather="shopping-cart"></i>
+            <h1>iCash Register</h1>
+        </div>
+
+        {% if success_message %}
+            <div class="message success">{{ success_message }}</div>
+        {% endif %}
+        {% if error %}
+            <div class="message error">{{ error }}</div>
+        {% endif %}
+        
+        <div class="card">
+            <form action="/submit_purchase" method="post">
+                <div>
+                    <h2>Purchase Details</h2>
+                    <div class="form-group">
+                        <label for="supermarket_id">Supermarket Branch</label>
+                        <select id="supermarket_id" name="supermarket_id" required>
+                            {% for store in supermarkets %}
+                                <option value="{{ store }}">{{ store }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label for="user_id">Customer ID (optional)</label>
+                        <input type="text" id="user_id" name="user_id" placeholder="e.g., loyal-customer-01">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="is_new_customer" name="is_new_customer" value="true">
+                            <label for="is_new_customer" style="font-weight: 400;">This is a new customer</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2>Select Products</h2>
+                    <div class="items-grid">
+                        {% for product in products %}
+                        <label for="item_{{ product['product_id'] }}" class="item-label">
+                            <input type="checkbox" id="item_{{ product['product_id'] }}" name="items" value="{{ product['product_id'] }}">
+                            <span>{{ product['product_name'] | title }}</span>
+                            <span class="price">${{ "%.2f"|format(product['unit_price']) }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button type="submit">
+                    <i data-feather="check-circle"></i>
+                    <span>Complete Purchase</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

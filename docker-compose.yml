@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:13-alpine
+    container_name: icash_db
+    environment:
+      - POSTGRES_USER=icashuser
+      - POSTGRES_PASSWORD=icashpass
+      - POSTGRES_DB=icashdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432" # Expose for local debugging if needed
+    networks:
+      - icash_network
+
+  # One-time service to initialize the database with tables and data
+  db-init:
+    build: ./db-init
+    container_name: icash_db_init
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=icashdb
+      - DB_USER=icashuser
+      - DB_PASS=icashpass
+    networks:
+      - icash_network
+
+  # Application A: The Cash Register Simulator
+  cash-register:
+    build: ./cash-register-service
+    container_name: icash_cash_register
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=icashdb
+      - DB_USER=icashuser
+      - DB_PASS=icashpass
+    networks:
+      - icash_network
+
+  # Application B: The Owner's Dashboard
+  dashboard:
+    build: ./dashboard-service
+    container_name: icash_dashboard
+    depends_on:
+      - db
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=icashdb
+      - DB_USER=icashuser
+      - DB_PASS=icashpass
+    networks:
+      - icash_network
+
+# Define the network for services to communicate
+networks:
+  icash_network:
+    driver: bridge
+
+# Define a volume for persistent database storage
+volumes:
+  postgres_data:
