@@ -19,19 +19,19 @@ def wait_for_db():
         try:
             engine = create_engine(DB_URL)
             with engine.connect():
-                print("✅ Database connection successful!")
+                print("Database connection successful!")
                 return engine
         except Exception:
-            print(f"⏳ Database not ready yet (attempt {i+1}/{max_retries})... Retrying in {retry_delay}s.")
+            print(f"Database not ready yet (attempt {i+1}/{max_retries})... Retrying in {retry_delay}s.")
             time.sleep(retry_delay)
-    print("❌ Could not connect to the database. Exiting.")
+    print("Could not connect to the database. Exiting.")
     exit(1)
 
 # --- Main Initialization Logic ---
 def initialize_database(engine):
     """Creates tables and loads data from CSV files if tables are empty."""
     with engine.connect() as conn:
-        print("🚀 Starting database initialization...")
+        print("Starting database initialization...")
 
         # --- Create tables in the correct order ---
         conn.execute(text("""
@@ -41,7 +41,7 @@ def initialize_database(engine):
                 unit_price NUMERIC(10, 2) NOT NULL
             );
         """))
-        print("✔️ 'products' table created.")
+        print("'products' table created.")
 
         conn.execute(text("""
         CREATE TABLE IF NOT EXISTS purchases (
@@ -51,7 +51,7 @@ def initialize_database(engine):
             user_id VARCHAR(255) NOT NULL
         );
     """))
-        print("✔️ 'purchases' table created.")
+        print("'purchases' table created.")
 
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS purchase_items (
@@ -60,7 +60,7 @@ def initialize_database(engine):
                 PRIMARY KEY (purchase_id, product_id)
             );
         """))
-        print("✔️ 'purchase_items' table created.")
+        print("'purchase_items' table created.")
         
         conn.commit()
 
@@ -68,21 +68,21 @@ def initialize_database(engine):
         with conn.begin() as transaction:
             # Load products if the table is empty
             if conn.execute(text("SELECT COUNT(*) FROM products;")).scalar() == 0:
-                print("📂 'products' table is empty. Loading data...")
+                print("'products' table is empty. Loading data...")
                 products_df = pd.read_csv("data/products_list.csv")
                 products_df.to_sql('products', conn, if_exists='append', index=False)
-                print(f"✅ Loaded {len(products_df)} products.")
+                print(f"Loaded {len(products_df)} products.")
             else:
                 print("ℹ️ 'products' table already has data.")
 
             # After loading, create a map of product_name -> product_id
             product_map_result = conn.execute(text("SELECT product_name, product_id FROM products;")).fetchall()
             name_to_id_map = {name: pid for name, pid in product_map_result}
-            print(f"🗺️ Created product name-to-ID map: {name_to_id_map}")
+            print(f" Created product name-to-ID map: {name_to_id_map}")
 
             # Load historical purchases if the table is empty
             if conn.execute(text("SELECT COUNT(*) FROM purchases;")).scalar() == 0:
-                print("📂 'purchases' table is empty. Loading historical data...")
+                print("'purchases' table is empty. Loading historical data...")
                 purchases_df = pd.read_csv("data/purchases.csv")
 
                 for index, row in purchases_df.iterrows():
@@ -104,12 +104,12 @@ def initialize_database(engine):
                                 VALUES (:pid, :prod_id);
                             """), {"pid": new_purchase_id, "prod_id": product_id})
                         else:
-                            print(f"⚠️ Warning: Product '{name}' from Purchases.csv not found in product list.")
-                print(f"✅ Loaded {len(purchases_df)} historical purchases.")
+                            print(f" Warning: Product '{name}' from Purchases.csv not found in product list.")
+                print(f"Loaded {len(purchases_df)} historical purchases.")
             else:
                 print("ℹ️ 'purchases' table already has data.")
 
-        print("🎉 Database initialization complete!")
+        print(" Database initialization complete!")
 
 if __name__ == "__main__":
     db_engine = wait_for_db()

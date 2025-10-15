@@ -26,7 +26,6 @@ templates = Jinja2Templates(directory="templates")
 async def get_cash_register_ui(request: Request):
     """Serves the main HTML page for the cash register UI."""
     with engine.connect() as conn:
-        # Use a more robust way to fetch results into a list of dictionaries
         products_result = conn.execute(text("SELECT * FROM products ORDER BY product_id;")).mappings().all()
         return templates.TemplateResponse(
             "index.html",
@@ -68,10 +67,10 @@ async def submit_purchase(
                         VALUES (:purchase_id, :product_id);
                     """), { "purchase_id": purchase_id, "product_id": item_id })
                 
-                print(f"✅ Successfully recorded purchase {purchase_id} for user {customer_id}.")
+                print(f"Successfully recorded purchase {purchase_id} for user {customer_id}.")
 
             except Exception as e:
-                print(f"❌ Error during purchase submission: {e}")
+                print(f"Error during purchase submission: {e}")
                 transaction.rollback() # Rollback on error
                 products_result = conn.execute(text("SELECT * FROM products ORDER BY product_id;")).mappings().all()
                 return templates.TemplateResponse(
